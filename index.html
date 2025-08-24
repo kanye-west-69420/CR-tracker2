@@ -25,7 +25,7 @@
             background: linear-gradient(135deg, #1e1e1e, #121212);
             color: var(--primary-text);
             margin: 0;
-            padding: 2rem;
+            padding: 1rem; /* Adjusted padding for mobile */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -50,7 +50,7 @@
         .player-header h1 {
             margin: 0;
             color: var(--title-text);
-            font-size: 2rem;
+            font-size: 1.8rem; /* Adjusted for mobile */
         }
         .player-header p {
             margin-top: 0.5rem;
@@ -58,7 +58,6 @@
         }
         .dashboard-grid {
             display: grid;
-            /* --- MODIFICATION: Adjusted minmax to better fit 4 cards --- */
             grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
             gap: 1.5rem;
         }
@@ -132,6 +131,51 @@
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* --- NEW: Responsive styles for mobile devices --- */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 1rem;
+            }
+            .stat-card .value {
+                font-size: 2rem;
+            }
+            .deck-table thead {
+                display: none; /* Hide table headers on mobile */
+            }
+            .deck-table, .deck-table tbody, .deck-table tr, .deck-table td {
+                display: block;
+                width: 100%;
+            }
+            .deck-table tr {
+                margin-bottom: 1rem;
+                border-radius: 8px;
+                border: 1px solid #333;
+                overflow: hidden;
+            }
+            .deck-table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+                border-bottom: 1px solid #333;
+            }
+            .deck-table td:last-child {
+                border-bottom: none;
+            }
+            .deck-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: calc(50% - 30px);
+                text-align: left;
+                font-weight: bold;
+                color: var(--accent-color);
+            }
+        }
     </style>
 </head>
 <body>
@@ -177,7 +221,7 @@
             
             <div class="card chart-card">
                 <h3>Win/Loss</h3>
-                <div style="position: relative; margin: 0 auto; height: 50vh; max-width: 700px;">
+                <div style="position: relative; margin: 0 auto; height: 40vh; max-width: 700px;">
                     <canvas id="winLossChart"></canvas>
                 </div>
             </div>
@@ -269,9 +313,7 @@
                 const trophyChangeResult = db.exec("SELECT SUM(trophyChange) FROM ladder_battles WHERE trophyChange IS NOT NULL");
                 const totalTrophyChange = trophyChangeResult[0].values[0][0] || 0;
 
-                // --- POPULATE HEADER & NEW CARDS ---
                 document.getElementById('playerTag').textContent = playerTag;
-                // --- MODIFICATION: Updated date format ---
                 const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
                 document.getElementById('statsSince').textContent = `Player statistics since ${startDate.toLocaleDateString('en-US', dateOptions)}`;
                 
@@ -283,7 +325,6 @@
                 document.getElementById('winLoss').textContent = `${wins}W / ${losses}L`;
                 document.getElementById('totalBattles').textContent = totalBattles;
                 
-                // --- MODIFICATION: Set trophy change text and color ---
                 const trophyChangeEl = document.getElementById('trophyChange');
                 if (totalTrophyChange > 0) {
                     trophyChangeEl.textContent = `+${totalTrophyChange}`;
@@ -299,7 +340,6 @@
                     document.getElementById('lastUpdated').textContent = `Last updated: ${lastBattleTime.toLocaleString()}`;
                 }
 
-                // --- TROPHY CHART ---
                 const trophyHistoryResult = db.exec("SELECT battleTime, currentTrophies FROM ladder_battles ORDER BY battleTime ASC");
                 const trophyHistory = trophyHistoryResult[0].values;
                 const labels = trophyHistory.map(row => formatChartDate(parseApiDateString(row[0])));
@@ -313,7 +353,6 @@
                     options: { scales: { y: { beginAtZero: false } } }
                 });
 
-                // --- WIN/LOSS CHART ---
                 if (wins > 0 || losses > 0) {
                     new Chart(document.getElementById('winLossChart'), {
                         type: 'doughnut', data: { labels: ['Wins', 'Losses'], datasets: [{ label: 'Battle Outcomes', data: [wins, losses], backgroundColor: ['#28a745', '#dc3545'], borderColor: '#1e1e1e', hoverOffset: 8 }] },
@@ -321,7 +360,6 @@
                     });
                 }
 
-                // --- DECK PERFORMANCE TABLE ---
                 const deckPerfQuery = `
                     SELECT 
                         deck, 
@@ -341,13 +379,14 @@
                     deckPerfResult[0].values.forEach(row => {
                         const [deck, battles, wins, losses, trophy_change, avg_crowns] = row;
                         const newRow = tableBody.insertRow();
+                        // --- NEW: Added data-label attributes for mobile view ---
                         newRow.innerHTML = `
-                            <td class="deck-cards">${deck}</td>
-                            <td>${battles}</td>
-                            <td>${wins}</td>
-                            <td>${losses}</td>
-                            <td>${trophy_change > 0 ? '+' : ''}${trophy_change}</td>
-                            <td>${avg_crowns.toFixed(2)}</td>
+                            <td data-label="Deck" class="deck-cards">${deck}</td>
+                            <td data-label="Battles">${battles}</td>
+                            <td data-label="Wins">${wins}</td>
+                            <td data-label="Losses">${losses}</td>
+                            <td data-label="Trophy +/-">${trophy_change > 0 ? '+' : ''}${trophy_change}</td>
+                            <td data-label="Avg Crowns">${avg_crowns.toFixed(2)}</td>
                         `;
                     });
                 }
