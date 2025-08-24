@@ -1,24 +1,20 @@
 import requests
 import sqlite3
 import os
-import json # <-- Import the json library
+import json 
 from datetime import datetime
 
 # --- CONFIGURATION ---
 PLAYER_TAG_RAW = os.getenv("CR_PLAYER_TAG", "YOUR_PLAYER_TAG_HERE")
 BEARER_TOKEN = os.getenv("CR_BEARER_TOKEN", "YOUR_BEARER_TOKEN_HERE")
-
-# Clean the player tag for URL usage
 PLAYER_TAG_URL = PLAYER_TAG_RAW.replace('#', '%23')
-
-# --- DATABASE CONFIG ---
 DB_PATH = 'clash_royale_ladder.db'
 
 def init_database():
-    """Creates the SQLite database and table if they don't exist."""
+    """Creates the SQLite database and table with the final column order."""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    # ADDED new column for princessTowersHP
+    # MODIFIED: Added opponent tower HP columns at the end
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS ladder_battles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,10 +27,12 @@ def init_database():
             crowns INTEGER,
             elixirLeaked REAL,
             kingTowerHP INTEGER,
+            princessTowersHP TEXT,
             opponent_tag TEXT,
             opponent_name TEXT,
             opponent_deck TEXT,
-            princessTowersHP TEXT,
+            opponent_kingTowerHP INTEGER,
+            opponent_princessTowersHP TEXT,
             UNIQUE(player_tag, battleTime)
         )
     """)
@@ -49,7 +47,7 @@ def format_deck(cards):
     return ' | '.join(card_names)
 
 def fetch_and_process_battles():
-    """Fetches battle data, filters for ladder matches, and extracts key stats."""
+    """Fetches battle data, filters for ladder matches, and extracts all specified stats."""
     api_url = f'https://proxy.royaleapi.dev/v1/players/{PLAYER_TAG_URL}/battlelog'
     headers = {'Authorization': f'Bearer {BEARER_TOKEN}'}
     print(f"[{datetime.now()}] Fetching data from API for tag {PLAYER_TAG_RAW}...")
@@ -73,7 +71,7 @@ def fetch_and_process_battles():
 
                 current_trophies = player_info.get('startingTrophies', 0) + trophy_change
                 
-                # MODIFIED: Expanded the record with princess tower HP
+                # MODIFIED: Final battle_record with all requested data in order
                 battle_record = [
                     battle.get('battleTime'),
                     result,
@@ -83,10 +81,12 @@ def fetch_and_process_battles():
                     player_info.get('crowns', 0),
                     player_info.get('elixirLeaked'),
                     player_info.get('kingTowerHitPoints'),
+                    json.dumps(player_info.get('princessTowersHitPoints', [])),
                     opponent_info.get('tag'),
                     opponent_info.get('name'),
                     format_deck(opponent_info.get('cards')),
-                    json.dumps(player_info.get('princessTowersHitPoints', [])) # Convert list to JSON string
+                    opponent_info.get('kingTowerHitPoints'),
+                    json.dumps(opponent_info.get('princessTowersHitPoints', []))
                 ]
                 processed_data.append(battle_record)
 
@@ -109,11 +109,11 @@ def save_data_to_sqlite(data):
     new_rows_count = 0
     for row in data:
         try:
-            # MODIFIED: Updated INSERT statement for the new column
+            # MODIFIED: Final INSERT statement with all 15 columns
             cursor.execute("""
                 INSERT OR IGNORE INTO ladder_battles 
-                (player_tag, battleTime, result, trophyChange, currentTrophies, deck, crowns, elixirLeaked, kingTowerHP, opponent_tag, opponent_name, opponent_deck, princessTowersHP)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (player_tag, battleTime, result, trophyChange, currentTrophies, deck, crowns, elixirLeaked, kingTowerHP, princessTowersHP, opponent_tag, opponent_name, opponent_deck, opponent_kingTowerHP, opponent_princessTowersHP)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (PLAYER_TAG_RAW, *row))
             
             new_rows_count += cursor.rowcount
