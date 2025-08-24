@@ -144,6 +144,7 @@
             .stat-card .value {
                 font-size: 2rem;
             }
+            /* --- MODIFICATION: Complete redesign of the deck table for mobile --- */
             .deck-table thead {
                 display: none;
             }
@@ -155,13 +156,13 @@
                 margin-bottom: 1.5rem;
                 border-radius: 8px;
                 border: 1px solid #333;
-                overflow: hidden;
+                padding: 1rem;
+                box-sizing: border-box; /* Ensures padding is included in the width */
             }
-            /* --- MODIFICATION: Reverted to a more stable layout for mobile table rows --- */
             .deck-table td {
-                padding: 10px 1rem;
-                position: relative;
-                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                padding: 8px 0;
                 border-bottom: 1px solid #333;
             }
             .deck-table td:last-child {
@@ -169,16 +170,14 @@
             }
             .deck-table td::before {
                 content: attr(data-label);
-                position: absolute;
-                left: 1rem;
-                text-align: left;
                 font-weight: bold;
                 color: var(--accent-color);
+                padding-right: 1rem;
             }
             .deck-table td.deck-cards {
                 display: block;
                 text-align: left;
-                padding: 1rem 1rem 10px 1rem;
+                padding: 0 0 10px 0;
                 border-bottom: 1px solid var(--accent-color);
                 margin-bottom: 10px;
                 font-weight: 600;
