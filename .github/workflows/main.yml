@@ -1,5 +1,5 @@
 # Name of your workflow
-name: Fetch Clash Royale Data
+name: Fetch Clash Royale Data 2
 
 # Controls when the action will run
 on:
