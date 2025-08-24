@@ -145,25 +145,24 @@
                 font-size: 2rem;
             }
             .deck-table thead {
-                display: none; /* Hide table headers on mobile */
+                display: none;
             }
             .deck-table, .deck-table tbody, .deck-table tr, .deck-table td {
                 display: block;
                 width: 100%;
             }
             .deck-table tr {
-                margin-bottom: 1rem;
+                margin-bottom: 1.5rem;
                 border-radius: 8px;
                 border: 1px solid #333;
-                overflow: hidden;
+                padding: 1rem;
             }
-            /* --- MODIFICATION: Revamped mobile table styles for readability --- */
             .deck-table td {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 border-bottom: 1px solid #333;
-                padding: 10px 15px;
+                padding: 10px 0;
             }
             .deck-table td:last-child {
                 border-bottom: none;
@@ -173,9 +172,18 @@
                 font-weight: bold;
                 color: var(--accent-color);
             }
-            .deck-table .deck-cards {
-                text-align: right;
-                padding-left: 1rem; /* Add space between label and deck names */
+            /* --- MODIFICATION: New styles for the deck name row on mobile --- */
+            .deck-table td.deck-cards {
+                display: block;
+                text-align: left;
+                padding: 0 0 10px 0;
+                border-bottom: 1px solid var(--accent-color);
+                margin-bottom: 10px;
+                font-weight: 600;
+                color: var(--title-text);
+            }
+            .deck-table td.deck-cards::before {
+                display: none; /* Hide the "Deck:" label */
             }
         }
     </style>
@@ -218,7 +226,6 @@
 
             <div class="card chart-card">
                 <h3>Trophy Progression</h3>
-                <!-- --- MODIFICATION: Added a wrapper to control graph height on mobile --- -->
                 <div style="position: relative; height: 50vh;">
                     <canvas id="trophyChart"></canvas>
                 </div>
@@ -355,7 +362,6 @@
 
                 new Chart(document.getElementById('trophyChart'), {
                     type: 'line', data: { labels, datasets: [{ label: 'Trophies', data: trophyData, borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, tension: 0.2 }] },
-                    // --- MODIFICATION: Added options to ensure graph fills its container on mobile ---
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
                 });
 
