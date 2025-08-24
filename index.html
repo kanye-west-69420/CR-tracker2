@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clash Royale Battle Dashboard</title>
-    <!-- Import Chart.js for charts and sql.js for reading the database -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
-    <!-- Import a modern font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -22,7 +20,6 @@
             --red: #dc3545;
             --gray: #6c757d;
         }
-
         body {
             font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background: linear-gradient(135deg, #1e1e1e, #121212);
@@ -37,23 +34,33 @@
             max-width: 1000px;
             width: 100%;
         }
-        h1 {
-            text-align: center;
-            color: var(--title-text);
-            border-bottom: 2px solid var(--accent-color);
-            padding-bottom: 10px;
-            font-weight: 700;
-        }
         #loading {
             text-align: center;
             font-size: 1.2rem;
             padding: 2rem;
         }
-        .dashboard-grid {
-            display: none; /* Hidden until data is loaded */
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+        .dashboard-container {
+            display: none;
             animation: fadeIn 0.8s ease-in-out;
+        }
+        .player-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .player-header h1 {
+            margin: 0;
+            color: var(--title-text);
+            font-size: 2rem;
+        }
+        .player-header p {
+            margin-top: 0.5rem;
+            color: var(--gray);
+        }
+        .dashboard-grid {
+            display: grid;
+            /* --- MODIFICATION: Adjusted minmax to better fit 4 cards --- */
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.5rem;
         }
         .card {
             background-color: var(--card-color);
@@ -68,15 +75,7 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
         }
         .stat-card {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .stat-card .icon {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 1rem;
+            text-align: center;
         }
         .stat-card h3 {
             margin-top: 0;
@@ -90,19 +89,44 @@
             font-weight: 700;
             color: var(--title-text);
         }
-        .chart-card {
-            grid-column: 1 / -1; /* Make chart cards span full width */
+        .stat-card .sub-value {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-top: 0.5rem;
         }
-        /* --- MODIFICATION: Adjusted the size of the pie chart container --- */
-        .pie-chart-card {
-            max-width: 750px;
-            margin: 0 auto; /* Center the smaller card */
+        .chart-card {
+            margin-top: 1.5rem;
         }
         #lastUpdated {
             text-align: center;
             margin-top: 2rem;
             color: var(--gray);
             font-size: 0.9rem;
+        }
+        .deck-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .deck-table th, .deck-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+        .deck-table th {
+            color: var(--accent-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        .deck-table td {
+            font-size: 0.9rem;
+        }
+        .deck-table tr:last-child td {
+            border-bottom: none;
+        }
+        .deck-cards {
+            font-size: 0.8rem;
+            word-break: break-word;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
@@ -113,42 +137,72 @@
 <body>
 
     <div class="container">
-        <h1>Clash Royale Ladder Stats</h1>
-
         <div id="loading">
             <p>Loading database and analyzing battles...</p>
         </div>
 
-        <div id="dashboard" class="dashboard-grid">
-            <!-- Stat Cards with Icons -->
-            <div class="card stat-card">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-                <h3>Win Rate</h3>
-                <p id="winRate" class="value">0%</p>
-            </div>
-            <div class="card stat-card">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"></path></svg>
-                <h3>Total Battles</h3>
-                <p id="totalBattles" class="value">0</p>
-            </div>
-            <div class="card stat-card">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m7-7l-7 7-7-7"></path></svg>
-                <h3>Trophy Change</h3>
-                <p id="trophyChange" class="value">0</p>
+        <div id="dashboard" class="dashboard-container">
+            <div class="player-header">
+                <h1 id="playerTag">Player Tag</h1>
+                <p id="statsSince">Player statistics since...</p>
             </div>
 
-            <!-- Chart Cards -->
+            <div class="dashboard-grid">
+                <div class="card stat-card">
+                    <h3>Current Trophies</h3>
+                    <p id="currentTrophies" class="value">0</p>
+                    <p id="bestTrophies" class="sub-value">Best: 0</p>
+                </div>
+                <div class="card stat-card">
+                    <h3>Win Rate</h3>
+                    <p id="winRate" class="value">0%</p>
+                    <p id="winLoss" class="sub-value">0W / 0L</p>
+                </div>
+                <div class="card stat-card">
+                    <h3>Total Battles</h3>
+                    <p id="totalBattles" class="value">0</p>
+                    <p class="sub-value">&nbsp;</p> <!-- Placeholder for alignment -->
+                </div>
+                <div class="card stat-card">
+                    <h3>Trophy Change</h3>
+                    <p id="trophyChange" class="value">0</p>
+                    <p class="sub-value">&nbsp;</p> <!-- Placeholder for alignment -->
+                </div>
+            </div>
+
             <div class="card chart-card">
                 <h3>Trophy Progression</h3>
                 <canvas id="trophyChart"></canvas>
             </div>
-            <div class="card chart-card pie-chart-card">
+            
+            <div class="card chart-card">
                 <h3>Win/Loss</h3>
-                <canvas id="winLossChart"></canvas>
+                <div style="position: relative; margin: 0 auto; height: 50vh; max-width: 700px;">
+                    <canvas id="winLossChart"></canvas>
+                </div>
             </div>
+
+            <div class="card chart-card">
+                <h3>Top Performing Decks</h3>
+                <table id="deckPerformanceTable" class="deck-table">
+                    <thead>
+                        <tr>
+                            <th>Deck</th>
+                            <th>Battles</th>
+                            <th>Wins</th>
+                            <th>Losses</th>
+                            <th>Trophy +/-</th>
+                            <th>Avg Crowns</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be inserted by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <p id="lastUpdated"></p>
         </div>
-        
-        <p id="lastUpdated"></p>
     </div>
 
     <script>
@@ -166,22 +220,12 @@
 
         function formatChartDate(date) {
             if (!date) return '';
-            const options = {
-                year: '2-digit',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            };
+            const options = { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true };
             return date.toLocaleString('en-US', options);
         }
 
         async function main() {
-            const config = {
-                locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${filename}`
-            };
-
+            const config = { locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${filename}` };
             const repo = "kanye-west-69420/CR-tracker2"; 
             const dbUrl = `https://raw.githubusercontent.com/${repo}/main/clash_royale_ladder.db`;
 
@@ -202,71 +246,114 @@
                     return;
                 }
 
+                const playerTagResult = db.exec("SELECT player_tag FROM ladder_battles LIMIT 1");
+                const playerTag = playerTagResult[0].values[0][0];
+
+                const startDateResult = db.exec("SELECT MIN(battleTime) FROM ladder_battles");
+                const startDate = parseApiDateString(startDateResult[0].values[0][0]);
+
+                const latestTrophiesResult = db.exec("SELECT currentTrophies FROM ladder_battles ORDER BY battleTime DESC LIMIT 1");
+                const currentTrophies = latestTrophiesResult[0].values[0][0];
+
+                const bestTrophiesResult = db.exec("SELECT MAX(currentTrophies) FROM ladder_battles");
+                const bestTrophies = bestTrophiesResult[0].values[0][0];
+
                 const lastBattleResult = db.exec("SELECT MAX(battleTime) FROM ladder_battles");
-                if (lastBattleResult.length > 0 && lastBattleResult[0].values.length > 0) {
-                    const lastBattleTime = parseApiDateString(lastBattleResult[0].values[0][0]);
-                    if (lastBattleTime) {
-                        document.getElementById('lastUpdated').textContent = `Last updated: ${lastBattleTime.toLocaleString()}`;
-                    }
-                }
+                const lastBattleTime = parseApiDateString(lastBattleResult[0].values[0][0]);
 
                 const resultsResult = db.exec("SELECT result, COUNT(*) FROM ladder_battles GROUP BY result");
-                const results = resultsResult.length > 0 ? Object.fromEntries(resultsResult[0].values) : {};
+                const results = Object.fromEntries(resultsResult[0].values);
                 const wins = results['Win'] || 0;
                 const losses = results['Loss'] || 0;
 
                 const trophyChangeResult = db.exec("SELECT SUM(trophyChange) FROM ladder_battles WHERE trophyChange IS NOT NULL");
-                const totalTrophyChange = trophyChangeResult.length > 0 ? trophyChangeResult[0].values[0][0] || 0 : 0;
+                const totalTrophyChange = trophyChangeResult[0].values[0][0] || 0;
 
-                const trophyHistoryResult = db.exec("SELECT battleTime, currentTrophies FROM ladder_battles ORDER BY battleTime ASC");
-                const trophyHistory = trophyHistoryResult.length > 0 ? trophyHistoryResult[0].values : [];
+                // --- POPULATE HEADER & NEW CARDS ---
+                document.getElementById('playerTag').textContent = playerTag;
+                // --- MODIFICATION: Updated date format ---
+                const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('statsSince').textContent = `Player statistics since ${startDate.toLocaleDateString('en-US', dateOptions)}`;
                 
-                const labels = trophyHistory.map(row => formatChartDate(parseApiDateString(row[0])));
-                const trophyData = trophyHistory.map(row => row[1]);
-
-                document.getElementById('totalBattles').textContent = totalBattles;
+                document.getElementById('currentTrophies').textContent = currentTrophies;
+                document.getElementById('bestTrophies').textContent = `Best: ${bestTrophies}`;
                 const winLossTotal = wins + losses;
                 const winRate = winLossTotal > 0 ? ((wins / winLossTotal) * 100).toFixed(1) + '%' : '0%';
                 document.getElementById('winRate').textContent = winRate;
-                document.getElementById('trophyChange').textContent = totalTrophyChange > 0 ? `+${totalTrophyChange}` : totalTrophyChange;
+                document.getElementById('winLoss').textContent = `${wins}W / ${losses}L`;
+                document.getElementById('totalBattles').textContent = totalBattles;
+                
+                // --- MODIFICATION: Set trophy change text and color ---
+                const trophyChangeEl = document.getElementById('trophyChange');
+                if (totalTrophyChange > 0) {
+                    trophyChangeEl.textContent = `+${totalTrophyChange}`;
+                    trophyChangeEl.style.color = 'var(--green)';
+                } else if (totalTrophyChange < 0) {
+                    trophyChangeEl.textContent = totalTrophyChange;
+                    trophyChangeEl.style.color = 'var(--red)';
+                } else {
+                    trophyChangeEl.textContent = totalTrophyChange;
+                }
 
+                if (lastBattleTime) {
+                    document.getElementById('lastUpdated').textContent = `Last updated: ${lastBattleTime.toLocaleString()}`;
+                }
+
+                // --- TROPHY CHART ---
+                const trophyHistoryResult = db.exec("SELECT battleTime, currentTrophies FROM ladder_battles ORDER BY battleTime ASC");
+                const trophyHistory = trophyHistoryResult[0].values;
+                const labels = trophyHistory.map(row => formatChartDate(parseApiDateString(row[0])));
+                const trophyData = trophyHistory.map(row => row[1]);
+                
                 Chart.defaults.color = 'rgba(224, 224, 224, 0.8)';
                 Chart.defaults.borderColor = 'rgba(224, 224, 224, 0.2)';
 
                 new Chart(document.getElementById('trophyChart'), {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Trophies',
-                            data: trophyData,
-                            borderColor: 'var(--accent-color)',
-                            backgroundColor: 'rgba(255, 193, 7, 0.2)',
-                            fill: true,
-                            tension: 0.2
-                        }]
-                    },
+                    type: 'line', data: { labels, datasets: [{ label: 'Trophies', data: trophyData, borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, tension: 0.2 }] },
                     options: { scales: { y: { beginAtZero: false } } }
                 });
 
+                // --- WIN/LOSS CHART ---
                 if (wins > 0 || losses > 0) {
                     new Chart(document.getElementById('winLossChart'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Wins', 'Losses'],
-                            datasets: [{
-                                label: 'Battle Outcomes',
-                                data: [wins, losses],
-                                backgroundColor: ['#28a745', '#dc3545'],
-                                borderColor: '#1e1e1e',
-                                hoverOffset: 8
-                            }]
-                        }
+                        type: 'doughnut', data: { labels: ['Wins', 'Losses'], datasets: [{ label: 'Battle Outcomes', data: [wins, losses], backgroundColor: ['#28a745', '#dc3545'], borderColor: '#1e1e1e', hoverOffset: 8 }] },
+                        options: { responsive: true, maintainAspectRatio: false }
+                    });
+                }
+
+                // --- DECK PERFORMANCE TABLE ---
+                const deckPerfQuery = `
+                    SELECT 
+                        deck, 
+                        COUNT(*) as battles, 
+                        SUM(CASE WHEN result = 'Win' THEN 1 ELSE 0 END) as wins,
+                        SUM(CASE WHEN result = 'Loss' THEN 1 ELSE 0 END) as losses,
+                        SUM(trophyChange) as trophy_change,
+                        AVG(crowns) as avg_crowns
+                    FROM ladder_battles 
+                    GROUP BY deck 
+                    ORDER BY battles DESC
+                    LIMIT 10`;
+                const deckPerfResult = db.exec(deckPerfQuery);
+                
+                if (deckPerfResult.length > 0) {
+                    const tableBody = document.getElementById('deckPerformanceTable').getElementsByTagName('tbody')[0];
+                    deckPerfResult[0].values.forEach(row => {
+                        const [deck, battles, wins, losses, trophy_change, avg_crowns] = row;
+                        const newRow = tableBody.insertRow();
+                        newRow.innerHTML = `
+                            <td class="deck-cards">${deck}</td>
+                            <td>${battles}</td>
+                            <td>${wins}</td>
+                            <td>${losses}</td>
+                            <td>${trophy_change > 0 ? '+' : ''}${trophy_change}</td>
+                            <td>${avg_crowns.toFixed(2)}</td>
+                        `;
                     });
                 }
 
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('dashboard').style.display = 'grid';
+                document.getElementById('dashboard').style.display = 'block';
 
             } catch (error) {
                 console.error("Failed to load or process database:", error);
