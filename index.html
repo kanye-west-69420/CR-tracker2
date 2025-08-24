@@ -25,7 +25,7 @@
             background: linear-gradient(135deg, #1e1e1e, #121212);
             color: var(--primary-text);
             margin: 0;
-            padding: 1rem; /* Adjusted padding for mobile */
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -50,7 +50,7 @@
         .player-header h1 {
             margin: 0;
             color: var(--title-text);
-            font-size: 1.8rem; /* Adjusted for mobile */
+            font-size: 1.8rem;
         }
         .player-header p {
             margin-top: 0.5rem;
@@ -132,7 +132,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- NEW: Responsive styles for mobile devices --- */
+        /* --- Responsive styles for mobile devices --- */
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -157,23 +157,25 @@
                 border: 1px solid #333;
                 overflow: hidden;
             }
+            /* --- MODIFICATION: Revamped mobile table styles for readability --- */
             .deck-table td {
-                text-align: right;
-                padding-left: 50%;
-                position: relative;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 border-bottom: 1px solid #333;
+                padding: 10px 15px;
             }
             .deck-table td:last-child {
                 border-bottom: none;
             }
             .deck-table td::before {
                 content: attr(data-label);
-                position: absolute;
-                left: 15px;
-                width: calc(50% - 30px);
-                text-align: left;
                 font-weight: bold;
                 color: var(--accent-color);
+            }
+            .deck-table .deck-cards {
+                text-align: right;
+                padding-left: 1rem; /* Add space between label and deck names */
             }
         }
     </style>
@@ -216,7 +218,10 @@
 
             <div class="card chart-card">
                 <h3>Trophy Progression</h3>
-                <canvas id="trophyChart"></canvas>
+                <!-- --- MODIFICATION: Added a wrapper to control graph height on mobile --- -->
+                <div style="position: relative; height: 50vh;">
+                    <canvas id="trophyChart"></canvas>
+                </div>
             </div>
             
             <div class="card chart-card">
@@ -350,7 +355,8 @@
 
                 new Chart(document.getElementById('trophyChart'), {
                     type: 'line', data: { labels, datasets: [{ label: 'Trophies', data: trophyData, borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, tension: 0.2 }] },
-                    options: { scales: { y: { beginAtZero: false } } }
+                    // --- MODIFICATION: Added options to ensure graph fills its container on mobile ---
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
                 });
 
                 if (wins > 0 || losses > 0) {
@@ -379,7 +385,6 @@
                     deckPerfResult[0].values.forEach(row => {
                         const [deck, battles, wins, losses, trophy_change, avg_crowns] = row;
                         const newRow = tableBody.insertRow();
-                        // --- NEW: Added data-label attributes for mobile view ---
                         newRow.innerHTML = `
                             <td data-label="Deck" class="deck-cards">${deck}</td>
                             <td data-label="Battles">${battles}</td>
