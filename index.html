@@ -155,14 +155,16 @@
                 margin-bottom: 1.5rem;
                 border-radius: 8px;
                 border: 1px solid #333;
-                padding: 1rem;
+                /* --- MODIFICATION: Removed padding from parent card --- */
+                overflow: hidden;
             }
             .deck-table td {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 border-bottom: 1px solid #333;
-                padding: 10px 0;
+                /* --- MODIFICATION: Added padding to inner rows instead --- */
+                padding: 10px 1rem;
             }
             .deck-table td:last-child {
                 border-bottom: none;
@@ -172,11 +174,10 @@
                 font-weight: bold;
                 color: var(--accent-color);
             }
-            /* --- MODIFICATION: New styles for the deck name row on mobile --- */
             .deck-table td.deck-cards {
                 display: block;
                 text-align: left;
-                padding: 0 0 10px 0;
+                padding: 1rem 1rem 10px 1rem; /* Adjusted padding */
                 border-bottom: 1px solid var(--accent-color);
                 margin-bottom: 10px;
                 font-weight: 600;
