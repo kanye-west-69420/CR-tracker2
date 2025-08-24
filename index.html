@@ -155,36 +155,37 @@
                 margin-bottom: 1.5rem;
                 border-radius: 8px;
                 border: 1px solid #333;
-                /* --- MODIFICATION: Removed padding from parent card --- */
                 overflow: hidden;
             }
+            /* --- MODIFICATION: Reverted to a more stable layout for mobile table rows --- */
             .deck-table td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                border-bottom: 1px solid #333;
-                /* --- MODIFICATION: Added padding to inner rows instead --- */
                 padding: 10px 1rem;
+                position: relative;
+                text-align: right;
+                border-bottom: 1px solid #333;
             }
             .deck-table td:last-child {
                 border-bottom: none;
             }
             .deck-table td::before {
                 content: attr(data-label);
+                position: absolute;
+                left: 1rem;
+                text-align: left;
                 font-weight: bold;
                 color: var(--accent-color);
             }
             .deck-table td.deck-cards {
                 display: block;
                 text-align: left;
-                padding: 1rem 1rem 10px 1rem; /* Adjusted padding */
+                padding: 1rem 1rem 10px 1rem;
                 border-bottom: 1px solid var(--accent-color);
                 margin-bottom: 10px;
                 font-weight: 600;
                 color: var(--title-text);
             }
             .deck-table td.deck-cards::before {
-                display: none; /* Hide the "Deck:" label */
+                display: none;
             }
         }
     </style>
