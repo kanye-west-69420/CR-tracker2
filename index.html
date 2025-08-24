@@ -93,6 +93,11 @@
         .chart-card {
             grid-column: 1 / -1; /* Make chart cards span full width */
         }
+        /* --- MODIFICATION: Adjusted the size of the pie chart container --- */
+        .pie-chart-card {
+            max-width: 750px;
+            margin: 0 auto; /* Center the smaller card */
+        }
         #lastUpdated {
             text-align: center;
             margin-top: 2rem;
@@ -137,8 +142,8 @@
                 <h3>Trophy Progression</h3>
                 <canvas id="trophyChart"></canvas>
             </div>
-            <div class="card chart-card">
-                <h3>Win/Loss/Draw</h3>
+            <div class="card chart-card pie-chart-card">
+                <h3>Win/Loss</h3>
                 <canvas id="winLossChart"></canvas>
             </div>
         </div>
@@ -206,18 +211,9 @@
                 }
 
                 const resultsResult = db.exec("SELECT result, COUNT(*) FROM ladder_battles GROUP BY result");
-                
-                // --- DEBUGGING: Log the raw data and the parsed object ---
-                console.log("Raw results from DB:", JSON.stringify(resultsResult));
-                
                 const results = resultsResult.length > 0 ? Object.fromEntries(resultsResult[0].values) : {};
                 const wins = results['Win'] || 0;
                 const losses = results['Loss'] || 0;
-                const draws = results['Draw'] || 0;
-
-                console.log("Parsed counts:", { wins, losses, draws });
-                // --- END DEBUGGING ---
-
 
                 const trophyChangeResult = db.exec("SELECT SUM(trophyChange) FROM ladder_battles WHERE trophyChange IS NOT NULL");
                 const totalTrophyChange = trophyChangeResult.length > 0 ? trophyChangeResult[0].values[0][0] || 0 : 0;
@@ -253,16 +249,16 @@
                     options: { scales: { y: { beginAtZero: false } } }
                 });
 
-                if (wins > 0 || losses > 0 || draws > 0) {
+                if (wins > 0 || losses > 0) {
                     new Chart(document.getElementById('winLossChart'), {
                         type: 'doughnut',
                         data: {
-                            labels: ['Wins', 'Losses', 'Draws'],
+                            labels: ['Wins', 'Losses'],
                             datasets: [{
                                 label: 'Battle Outcomes',
-                                data: [wins, losses, draws],
-                                backgroundColor: ['var(--green)', 'var(--red)', 'var(--gray)'],
-                                borderColor: 'var(--card-color)',
+                                data: [wins, losses],
+                                backgroundColor: ['#28a745', '#dc3545'],
+                                borderColor: '#1e1e1e',
                                 hoverOffset: 8
                             }]
                         }
