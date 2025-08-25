@@ -309,6 +309,8 @@
                 const playerTagResult = db.exec("SELECT player_tag FROM ladder_battles LIMIT 1");
                 const playerTag = playerTagResult[0].values[0][0];
 
+                const playerName = "King007";
+                
                 const startDateResult = db.exec("SELECT MIN(battleTime) FROM ladder_battles");
                 const startDate = parseApiDateString(startDateResult[0].values[0][0]);
 
@@ -329,7 +331,7 @@
                 const trophyChangeResult = db.exec("SELECT SUM(trophyChange) FROM ladder_battles WHERE trophyChange IS NOT NULL");
                 const totalTrophyChange = trophyChangeResult[0].values[0][0] || 0;
 
-                document.getElementById('playerTag').textContent = playerTag;
+                document.getElementById('playerHeader').textContent = `${playerName} (${playerTag})`;
                 const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
                 document.getElementById('statsSince').textContent = `Player statistics since ${startDate.toLocaleDateString('en-US', dateOptions)}`;
                 
