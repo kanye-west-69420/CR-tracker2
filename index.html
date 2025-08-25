@@ -211,7 +211,10 @@
                 <div class="card stat-card">
                     <h3>Win Rate</h3>
                     <p id="winRate" class="value">0%</p>
-                    <p id="winLoss" class="sub-value">0W / 0L</p>
+                    <p class="sub-value">
+                        <span id="winsText" style="color: var(--green);">0W</span> / 
+                        <span id="lossesText" style="color: var(--red);">0L</span>
+                    </p>
                 </div>
                 <div class="card stat-card">
                     <h3>Total Battles</h3>
@@ -335,7 +338,8 @@
                 const winLossTotal = wins + losses;
                 const winRate = winLossTotal > 0 ? ((wins / winLossTotal) * 100).toFixed(1) + '%' : '0%';
                 document.getElementById('winRate').textContent = winRate;
-                document.getElementById('winLoss').textContent = `${wins}W / ${losses}L`;
+                document.getElementById('winsText').textContent = `${wins}W`;
+                document.getElementById('lossesText').textContent = `${losses}L`;
                 document.getElementById('totalBattles').textContent = totalBattles;
                 
                 const trophyChangeEl = document.getElementById('trophyChange');
@@ -362,7 +366,7 @@
                 Chart.defaults.borderColor = 'rgba(224, 224, 224, 0.2)';
 
                 new Chart(document.getElementById('trophyChart'), {
-                    type: 'line', data: { labels, datasets: [{ label: 'Trophies', data: trophyData, borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, tension: 0.2 }] },
+                    type: 'line', data: { labels, datasets: [{ label: 'Trophies', data: trophyData, borderColor: 'var(--accent-color)', backgroundColor: 'rgba(255, 193, 7, 0.2)', fill: true, pointRadius: 1, tension: 0.2 }] },
                     options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: false } } }
                 });
 
