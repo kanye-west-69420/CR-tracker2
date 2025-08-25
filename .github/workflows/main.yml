@@ -48,5 +48,5 @@ jobs:
           git config --global user.email "actions@github.com"
           git add clash_royale_ladder.db
           # This version uses slashes in the date format
-          git diff --staged --quiet || git commit -m "Last updated at $(TZ='Asia/Kolkata' date +'%d/%m/%y, %I:%M %p')"
+          git diff --staged --quiet || git commit -m "Last updated at $(TZ='Asia/Kolkata' date +'%d/%m/%y, %I:%M %p') IST"
           git push
