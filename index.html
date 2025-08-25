@@ -198,7 +198,7 @@
 
         <div id="dashboard" class="dashboard-container">
             <div class="player-header">
-                <h1 id="playerTag">Player Tag</h1>
+                <h1 id="playerHeader">Player Tag</h1>
                 <p id="statsSince">Player statistics since...</p>
             </div>
 
@@ -290,6 +290,16 @@
             const dbUrl = `https://raw.githubusercontent.com/${repo}/main/clash_royale_ladder.db`;
 
             try {
+                // Get the last updated time from GitHub's API
+                const githubApiUrl = `https://api.github.com/repos/${repo}/commits?path=clash_royale_ladder.db&per_page=1`;
+                const githubResponse = await fetch(githubApiUrl);
+                const githubData = await githubResponse.json();
+                let lastUpdatedTime = null;
+                if (githubData.length > 0) {
+                    const commitDate = githubData[0].commit.author.date;
+                    lastUpdatedTime = new Date(commitDate);
+                }
+
                 const sqlPromise = initSqlJs(config);
                 const dataPromise = fetch(dbUrl).then(res => {
                     if (!res.ok) throw new Error(`Failed to fetch database file: ${res.status} ${res.statusText}`);
@@ -306,11 +316,13 @@
                     return;
                 }
 
+                // Query for the player tag
                 const playerTagResult = db.exec("SELECT player_tag FROM ladder_battles LIMIT 1");
                 const playerTag = playerTagResult[0].values[0][0];
 
+                // Hardcode the player name as requested
                 const playerName = "King007";
-                
+
                 const startDateResult = db.exec("SELECT MIN(battleTime) FROM ladder_battles");
                 const startDate = parseApiDateString(startDateResult[0].values[0][0]);
 
@@ -320,9 +332,6 @@
                 const bestTrophiesResult = db.exec("SELECT MAX(currentTrophies) FROM ladder_battles");
                 const bestTrophies = bestTrophiesResult[0].values[0][0];
 
-                const lastBattleResult = db.exec("SELECT MAX(battleTime) FROM ladder_battles");
-                const lastBattleTime = parseApiDateString(lastBattleResult[0].values[0][0]);
-
                 const resultsResult = db.exec("SELECT result, COUNT(*) FROM ladder_battles GROUP BY result");
                 const results = Object.fromEntries(resultsResult[0].values);
                 const wins = results['Win'] || 0;
@@ -330,8 +339,10 @@
 
                 const trophyChangeResult = db.exec("SELECT SUM(trophyChange) FROM ladder_battles WHERE trophyChange IS NOT NULL");
                 const totalTrophyChange = trophyChangeResult[0].values[0][0] || 0;
-
+                
+                // Update the player header to show the hardcoded name and fetched tag
                 document.getElementById('playerHeader').textContent = `${playerName} (${playerTag})`;
+                
                 const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
                 document.getElementById('statsSince').textContent = `Player statistics since ${startDate.toLocaleDateString('en-US', dateOptions)}`;
                 
@@ -355,8 +366,8 @@
                     trophyChangeEl.textContent = totalTrophyChange;
                 }
 
-                if (lastBattleTime) {
-                    document.getElementById('lastUpdated').textContent = `Last updated: ${lastBattleTime.toLocaleString()}`;
+                if (lastUpdatedTime) {
+                    document.getElementById('lastUpdated').textContent = `Last updated: ${lastUpdatedTime.toLocaleString()} IST`;
                 }
 
                 const trophyHistoryResult = db.exec("SELECT battleTime, currentTrophies FROM ladder_battles ORDER BY battleTime ASC");
